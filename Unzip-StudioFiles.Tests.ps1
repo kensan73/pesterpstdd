@@ -15,6 +15,9 @@ Describe "Unzip-StudioFiles" {
 	Function Get-Zips { param ($Path)}
 	Function Is-ZipGood { param ($Path)}
 	Function Is-FilenameCorrect { param ($Path) }
+	Function Unzip-SingleFile { param ($Source, $Dest) }
+	Function Delete-SingleFile { param ($Path) }
+	
     It "prints usage on 0 or 1 parameters" {
 		$usage = "Usage: unzip-studiofiles \\janus\studio_work \\janus\studio_work"
 		
@@ -97,5 +100,30 @@ Describe "Unzip-StudioFiles" {
 		Assert-MockCalled Is-ZipGood -ParameterFilter { $Path -eq $onezippath } -Times 1
 		Assert-MockCalled Is-FilenameCorrect -ParameterFilter { $Path -eq $onezippath } -Times 1
 		Assert-MockCalled Log-Error -ParameterFilter { $Message -eq $badzipfilenamemessage } -Times 1
+    }
+
+    It "unzips and deletes" {
+		$onezippath = "\\machine\folder\onecorrupt.zip"
+		$onefiledonemessage = "Unzipped and deleted file: " + $onezippath
+		
+		Mock Does-FolderExist –ParameterFilter { $Path –eq $source } -MockWith { $true }
+		Mock Does-FolderExist –ParameterFilter { $Path –eq $dest } -MockWith { $true }
+		Mock Get-Zips -ParameterFilter { $Path -eq $source } -MockWith { @($onezippath) }
+		Mock Is-ZipGood -ParameterFilter { $Path -eq $onezippath } -MockWith { $true }
+		Mock Is-FilenameCorrect -ParameterFilter { $Path -eq $onezippath } -MockWith { $true }
+		Mock Unzip-SingleFile -ParameterFilter { $Source -eq $onezippath, $Dest -eq $dest }
+		Mock Delete-SingleFile -ParameterFilter { $Source -eq $onezippath }
+		Mock Log-Info -ParameterFilter { $Message -eq $onefiledonemessage }
+		
+		Unzip-StudioFiles $source $dest
+		
+		Assert-MockCalled Does-FolderExist –ParameterFilter { $Path -eq $source } -Times 1
+		Assert-MockCalled Does-FolderExist –ParameterFilter { $Path -eq $dest } -Times 1
+		Assert-MockCalled Get-Zips –ParameterFilter { $Path -eq $source } -Times 1
+		Assert-MockCalled Is-ZipGood -ParameterFilter { $Path -eq $onezippath } -Times 1
+		Assert-MockCalled Is-FilenameCorrect -ParameterFilter { $Path -eq $onezippath } -Times 1
+		Assert-MockCalled Unzip-SingleFile -ParameterFilter { $Source -eq $onezippath, $Dest -eq $dest } -Times 1
+		Assert-MockCalled Delete-SingleFile -ParameterFilter { $Source -eq $onezippath } -Times 1
+		Assert-MockCalled Log-Info -ParameterFilter { $Message -eq $onefiledonemessage } -Times 1
     }
 }

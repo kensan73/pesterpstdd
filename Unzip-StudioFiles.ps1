@@ -37,5 +37,9 @@
 			Log-Error $badzipfilenamemessage
 			continue
 		}
+		
+		Unzip-SingleFile -Source $zip -Dest $dest
+		Delete-SingleFile -Source $zip
+		Log-Info -Message "Unzipped and deleted file: " + $zip
 	}
 }
