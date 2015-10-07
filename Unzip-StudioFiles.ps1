@@ -27,9 +27,14 @@
 	
 	foreach($zip in $zipList){
 		if((Is-ZipGood -Path $zip) -eq $false){
-			write-host "got here ken:" + $zip
 			$corruptzip = "Corrupt zip detected please check: " + $zip
 			Log-Error $corruptzip
+			continue
+		}
+		
+		if((Is-FilenameCorrect -Path $zip) -eq $false){
+			$badzipfilenamemessage = "Expect filename like State__jobid.zip please check: " + $zip
+			Log-Error $badzipfilenamemessage
 			continue
 		}
 	}
