@@ -13,6 +13,7 @@ Describe "Unzip-StudioFiles" {
 	Function Log-Debug { param ($Message) }
 	Function Log-Error { param ($Message) }
 	Function Get-Zips { param ($Path)}
+	Function Is-ZipGood { param ($Path)}
 
     It "prints usage on 0 or 1 parameters" {
 		$usage = "Usage: unzip-studiofiles \\janus\studio_work \\janus\studio_work"
@@ -56,5 +57,23 @@ Describe "Unzip-StudioFiles" {
 		Assert-MockCalled Does-FolderExist –ParameterFilter { $Path -eq $dest } -Times 1
 		Assert-MockCalled Get-Zips –ParameterFilter { $Path -eq $source } -Times 1
 		Assert-MockCalled Log-Info -ParameterFilter { $Message -eq $nothingtodo } -Times 1
+    }
+
+    It "one zip returned tests corrupt" {
+		$onezippath = "\\machine\folder\onecorrupt.zip"
+		$corruptzipmessage = "Corrupt zip detected please check: " + $onezippath
+		Mock Does-FolderExist –ParameterFilter { $Path –eq $source } -MockWith { $true }
+		Mock Does-FolderExist –ParameterFilter { $Path –eq $dest } -MockWith { $true }
+		Mock Get-Zips -ParameterFilter { $Path -eq $source } -MockWith { @($onezippath) }
+		Mock Is-ZipGood -ParameterFilter { $Path -eq $onezippath } -MockWith { $false }
+		Mock Log-Error -ParameterFilter { $Message -eq $corruptzipmessage }
+		
+		Unzip-StudioFiles $source $dest
+		
+		Assert-MockCalled Does-FolderExist –ParameterFilter { $Path -eq $source } -Times 1
+		Assert-MockCalled Does-FolderExist –ParameterFilter { $Path -eq $dest } -Times 1
+		Assert-MockCalled Get-Zips –ParameterFilter { $Path -eq $source } -Times 1
+		Assert-MockCalled Log-Error -ParameterFilter { $Message -eq $corruptzipmessage } -Times 1
+		Assert-MockCalled Is-ZipGood -ParameterFilter { $Path -eq $onezippath } -Times 1
     }
 }
