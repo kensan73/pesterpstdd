@@ -12,6 +12,7 @@ Describe "Unzip-StudioFiles" {
 	Function Log-Info { param ($Message) }
 	Function Log-Debug { param ($Message) }
 	Function Log-Error { param ($Message) }
+	Function Get-Zips { param ($Path)}
 
     It "prints usage on 0 or 1 parameters" {
 		$usage = "Usage: unzip-studiofiles \\janus\studio_work \\janus\studio_work"
@@ -43,12 +44,17 @@ Describe "Unzip-StudioFiles" {
     }
 
     It "no zips found exits" {
+		$nothingtodo = "No zips found, nothing to do."
 		Mock Does-FolderExist –ParameterFilter { $Path –eq $source } -MockWith { $true }
 		Mock Does-FolderExist –ParameterFilter { $Path –eq $dest } -MockWith { $true }
+		Mock Get-Zips -ParameterFilter { $Path -eq $source } -MockWith { @() }
+		Mock Log-Info -ParameterFilter { $Message -eq $nothingtodo }
 		
 		Unzip-StudioFiles $source $dest
 		
 		Assert-MockCalled Does-FolderExist –ParameterFilter { $Path -eq $source } -Times 1
 		Assert-MockCalled Does-FolderExist –ParameterFilter { $Path -eq $dest } -Times 1
+		Assert-MockCalled Get-Zips –ParameterFilter { $Path -eq $source } -Times 1
+		Assert-MockCalled Log-Info -ParameterFilter { $Message -eq $nothingtodo } -Times 1
     }
 }

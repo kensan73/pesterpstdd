@@ -11,9 +11,17 @@
 		Log-Error $message
 		return
 	}
+
 	if((Does-FolderExist -Path $dest) -eq $false){
 		$message = "Dest does not exist, please check now exiting: " + $dest
 		Log-Error $message
+		return
+	}
+	
+	$zipList = Get-Zips $source
+	if($zipList.Count -lt 1){
+		$nothingtodo = "No zips found, nothing to do."
+		Log-Info -Message $nothingtodo
 		return
 	}
 }
