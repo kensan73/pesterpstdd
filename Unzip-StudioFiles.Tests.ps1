@@ -3,6 +3,11 @@ $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
 Describe "Unzip-StudioFiles" {
+	$source = "\\somesource\with_folder"
+	$dest = "\\somedest\another_folder"
+	$destnonexistent = "Dest does not exist, please check now exiting: " + $dest
+	$sourcenonexistent = "Source does not exist, please check now exiting: " + $source
+
     Function Does-FolderExist { param ($Path) }
 	Function Log-Info { param ($Message) }
 	Function Log-Debug { param ($Message) }
@@ -16,9 +21,6 @@ Describe "Unzip-StudioFiles" {
     }
 
     It "fails on nonexistent source folder" {
-		$source = "\\somesource\with_folder"
-		$dest = "\\somedest\another_folder"
-		$sourcenonexistent = "Source does not exist, please check now exiting: " + $source
 		Mock Does-FolderExist –ParameterFilter { $Path –eq $source } -MockWith { $false }
 		Mock Log-Error -ParameterFilter { $Message -eq $sourcenonexistent }
 		
@@ -29,9 +31,6 @@ Describe "Unzip-StudioFiles" {
     }
 
     It "fails on nonexistent dest folder" {
-		$source = "\\somesource\with_folder"
-		$dest = "\\somedest\another_folder"
-		$destnonexistent = "Dest does not exist, please check now exiting: " + $dest
 		Mock Does-FolderExist –ParameterFilter { $Path –eq $source } -MockWith { $true }
 		Mock Does-FolderExist –ParameterFilter { $Path –eq $dest } -MockWith { $false }
 		Mock Log-Error -ParameterFilter { $Message -eq $destnonexistent }
@@ -44,8 +43,6 @@ Describe "Unzip-StudioFiles" {
     }
 
     It "no zips found exits" {
-		$source = "\\somesource\with_folder"
-		$dest = "\\somedest\another_folder"
 		Mock Does-FolderExist –ParameterFilter { $Path –eq $source } -MockWith { $true }
 		Mock Does-FolderExist –ParameterFilter { $Path –eq $dest } -MockWith { $true }
 		
